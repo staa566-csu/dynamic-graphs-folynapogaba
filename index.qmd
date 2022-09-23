@@ -1,0 +1,91 @@
+---
+title: "Dyanmic Assignment"
+author: "GABA FOLLY NAPO"
+format: html
+editor: visual
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+
+
+```{r,echo=TRUE, warning=FALSE}
+library(ggplot2)
+library(plotly)
+library(htmlwidgets)
+library(dygraphs)
+library(dplyr)
+library(lubridate, warn.conflicts = FALSE)
+library(anytime)
+library(xts)
+```
+
+
+*Description of the data and data source*
+
+For this assignment we use the data produes by the National Association of Realtors (NAR). NAR produces housing statistics on the national, regional, and metro-market level where data is available. we use the national historical data (view US data) on https://www.realtor.com/research/data/
+
+*what you want to convey in the figure*
+
+Through the figure we want to show how the median listing price and the median listing square feet change monthly from 2017 to 2022 in the united states.
+
+*Functionality and formatting put into the figure and why*
+
+package *dygraphs* is used to create an interactive graph. the functionality *dyRangeSelector* with no specification of window and *dyOptions* (stackedGraph =TRUE) to stack series on top of one another rather than drawing them independently. we only formatting the date in the standard form *yyyy-mm-dd* by using `anydate` in the package *anytime* and also as.Date to have the class equal to date.
+
+Those functionality and formatting were used, because we have and interactive graph,
+we can mouse over to highlight individual values
+
+
+*Upload Date and formatting the date*
+
+```{r,warning=FALSE}
+library(tidyverse)
+house=read.csv("C:/Users/L/OneDrive/Bureau/STAA 566/Dynamic Figure/RDC_Inventory_Core_Metrics_Country_History.csv",header = TRUE)
+house=house%>% rename(Date=month_date_yyyymm)
+house$Date=anydate(house$Date)
+house$Date=as.Date(house$Date,"%y-%m-%d")
+house=house %>% drop_na()
+class(house$Date)
+House=house %>%
+select(Date, median_listing_price, median_square_feet)
+head(House)
+```
+*Make an `xts` object and index of times*
+
+```{r}
+# make an xts object
+xts_House <- xts::xts(x= house %>% select(median_listing_price, median_square_feet),
+                      order.by = house %>% pull(Date)) # x axis
+class(xts_House)
+# index of the time
+head(attr(xts_House,"index"))
+```
+
+*Data visualization (make a Figure)*
+
+```{r}
+graph <- dygraph(xts_House, main = "Evolution of the median (listing price & square feet) from 2017 to 2020") %>%
+dySeries("median_listing_price", label = "Median listing price") %>%
+dySeries("median_square_feet", label = "Median square feet") %>%
+dyRangeSelector() %>%
+dyOptions(stackedGraph = TRUE)
+```
+
+
+*Save figure as PDF*
+
+```{r}
+pdf("interaction_assignmnent.pdf", height=4, width=6)
+dev.off()
+```
+
+*Display Figure in HTLM*
+
+```{r}
+graph
+```
+
