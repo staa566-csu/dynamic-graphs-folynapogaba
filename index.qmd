@@ -80,6 +80,7 @@ dyOptions(stackedGraph = TRUE)
 
 ```{r}
 pdf("interaction_assignmnent.pdf", height=4, width=6)
+print(graph)
 dev.off()
 ```
 
